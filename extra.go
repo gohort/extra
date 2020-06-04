@@ -18,7 +18,10 @@ func Unmarshal(data []byte, a interface{}, extras ...Map) error {
 		return err
 	}
 	// Fill the structure provided with whatever fields exist in the temp map.
-	fillStruct(&tmp, a)
+	if err := fillStruct(&tmp, a); err != nil {
+		return err
+	}
+
 	for _, ex := range extras {
 		// If the map given is nil, then make the map.
 		val := reflect.ValueOf(ex).Elem()
@@ -34,8 +37,13 @@ func Unmarshal(data []byte, a interface{}, extras ...Map) error {
 	return nil
 }
 
-func fillStruct(extra Map, a interface{}) {
+func fillStruct(extra Map, a interface{}) error {
 	tags := gatherTags(a)
+
+	v := reflect.ValueOf(a)
+	if v.Kind() != reflect.Ptr || v.IsNil() {
+		return &json.InvalidUnmarshalError{reflect.TypeOf(v)}
+	}
 
 	for _, t := range tags {
 		if val, ok := extra.GetOk(t.tag); ok {
@@ -50,12 +58,22 @@ func fillStruct(extra Map, a interface{}) {
 					field.SetString(val.(string))
 				case reflect.Float64:
 					field.SetFloat(val.(float64))
+				default:
+					if field.CanAddr() && field.CanInterface() {
+						bb, err := json.Marshal(val)
+						if err != nil {
+							return err
+						}
+						json.Unmarshal(bb, field.Addr().Interface())
+					}
 				}
 
 				extra.Delete(t.tag)
 			}
 		}
 	}
+
+	return nil
 }
 
 // Marshal takes all the fields of `a` and inserts them into the extra map.
