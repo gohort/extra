@@ -50,9 +50,19 @@ func fillStruct(extra Map, a interface{}) error {
 		if val, ok := extra.GetOk(t.tag); ok {
 			field := reflect.ValueOf(a).Elem().Field(t.index)
 			if field.IsValid() && field.CanSet() {
+				if field.CanAddr() && field.CanInterface() {
+					bb, err := json.Marshal(val)
+					if err != nil {
+						return err
+					}
+					if err := json.Unmarshal(bb, field.Addr().Interface()); err != nil {
+						return err
+					}
+				}
+
 				fieldType := field.Type()
 				valType := reflect.TypeOf(val)
-				if !valType.AssignableTo(fieldType) {
+				if !valType.AssignableTo(fieldType) || valType.ConvertibleTo(fieldType) {
 					return fmt.Errorf("%s can't go in %s: %w", valType, fieldType, ErrMismatchingTypes)
 				}
 
