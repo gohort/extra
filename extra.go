@@ -2,6 +2,7 @@ package extra
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 )
 
@@ -42,14 +43,20 @@ func fillStruct(extra Map, a interface{}) error {
 
 	v := reflect.ValueOf(a)
 	if v.Kind() != reflect.Ptr || v.IsNil() {
-		return &json.InvalidUnmarshalError{reflect.TypeOf(v)}
+		return &json.InvalidUnmarshalError{Type: reflect.TypeOf(v)}
 	}
 
 	for _, t := range tags {
 		if val, ok := extra.GetOk(t.tag); ok {
 			field := reflect.ValueOf(a).Elem().Field(t.index)
 			if field.IsValid() && field.CanSet() {
-				switch reflect.TypeOf(val).Kind() {
+				fieldType := field.Type()
+				valType := reflect.TypeOf(val)
+				if !valType.AssignableTo(fieldType) {
+					return fmt.Errorf("%s can't go in %s: %w", valType, fieldType, ErrMismatchingTypes)
+				}
+
+				switch valType.Kind() {
 				case reflect.Int:
 					field.SetInt(val.(int64))
 				case reflect.Bool:
