@@ -58,30 +58,30 @@ func fillStruct(extra Map, a interface{}) error {
 					if err := json.Unmarshal(bb, field.Addr().Interface()); err != nil {
 						return err
 					}
-				}
+				} else {
+					fieldType := field.Type()
+					valType := reflect.TypeOf(val)
+					if !valType.AssignableTo(fieldType) || !valType.ConvertibleTo(fieldType) {
+						return fmt.Errorf("%s can't go in %s: %w", valType, fieldType, ErrMismatchingTypes)
+					}
 
-				fieldType := field.Type()
-				valType := reflect.TypeOf(val)
-				if !valType.AssignableTo(fieldType) || valType.ConvertibleTo(fieldType) {
-					return fmt.Errorf("%s can't go in %s: %w", valType, fieldType, ErrMismatchingTypes)
-				}
-
-				switch valType.Kind() {
-				case reflect.Int:
-					field.SetInt(val.(int64))
-				case reflect.Bool:
-					field.SetBool(val.(bool))
-				case reflect.String:
-					field.SetString(val.(string))
-				case reflect.Float64:
-					field.SetFloat(val.(float64))
-				default:
-					if field.CanAddr() && field.CanInterface() {
-						bb, err := json.Marshal(val)
-						if err != nil {
-							return err
+					switch valType.Kind() {
+					case reflect.Int:
+						field.SetInt(val.(int64))
+					case reflect.Bool:
+						field.SetBool(val.(bool))
+					case reflect.String:
+						field.SetString(val.(string))
+					case reflect.Float64:
+						field.SetFloat(val.(float64))
+					default:
+						if field.CanAddr() && field.CanInterface() {
+							bb, err := json.Marshal(val)
+							if err != nil {
+								return err
+							}
+							json.Unmarshal(bb, field.Addr().Interface())
 						}
-						json.Unmarshal(bb, field.Addr().Interface())
 					}
 				}
 
