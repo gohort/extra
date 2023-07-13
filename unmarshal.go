@@ -9,7 +9,7 @@ import (
 
 // Unmarshal takes the pointer of an extra defined map and fills it with
 // the fields that are not captured within the given `a` structure.
-func Unmarshal(data []byte, a interface{}, extras ...Map) error {
+func Unmarshal(data []byte, a any, extras ...Map) error {
 	switch {
 	case a == nil:
 		return ErrNilInterface
@@ -39,7 +39,7 @@ func Unmarshal(data []byte, a interface{}, extras ...Map) error {
 	return nil
 }
 
-func fillStruct(extra Map, a interface{}) error {
+func fillStruct(extra Map, a any) error {
 	tags := gatherTags(a)
 
 	v := reflect.ValueOf(a)
@@ -118,86 +118,6 @@ func fillStruct(extra Map, a interface{}) error {
 				}
 
 				extra.Delete(t.tag)
-			}
-		}
-	}
-
-	return nil
-}
-
-// Marshal takes all the fields of `a` and inserts them into the extra map.
-// Then marshals the map.
-func Marshal(a interface{}, extras ...Map) ([]byte, error) {
-	switch {
-	case a == nil:
-		return nil, ErrNilInterface
-	}
-
-	var (
-		extra = make(Any)
-	)
-
-	for _, ex := range extras {
-		keys := ex.Keys()
-		for _, key := range keys {
-			extra.Set(key, ex.Get(key))
-		}
-	}
-
-	if err := MarshalInto(a, extra); err != nil {
-		return nil, err
-	}
-
-	return json.Marshal(extra)
-}
-
-func MarshalInto(a interface{}, extra Any) error {
-	v := reflect.ValueOf(a).Elem()
-	t := reflect.TypeOf(a).Elem()
-
-	for i := 0; i < v.NumField(); i++ {
-		var key string
-		key = t.Field(i).Tag.Get("json")
-		if key == "-" {
-			continue
-		}
-		if key == "" {
-			name := t.Field(i).Name
-			key = fmt.Sprintf("%s%s", bytes.ToLower([]byte{name[0]}), name[1:])
-		}
-
-		field := v.Field(i)
-		if field.IsValid() {
-			switch field.Kind() {
-			case reflect.Int:
-				extra.Set(key, field.Int())
-			case reflect.String:
-				extra.Set(key, field.String())
-			case reflect.Float64:
-				extra.Set(key, field.Float())
-			case reflect.Bool:
-				extra.Set(key, field.Bool())
-			default:
-				if field.CanInterface() {
-					// If the type is a structure, then recurse this function.
-					if field.CanAddr() && field.Kind() == reflect.Struct {
-						if err := MarshalInto(field.Addr().Interface(), extra); err != nil {
-							return err
-						}
-					} else {
-						if field.Kind() == reflect.Slice { // If it's a slice, then append to map.
-							extra.Set(key, field.Interface())
-						} else { // Maps should land here
-							bb, err := json.Marshal(field.Interface())
-							if err != nil {
-								return err
-							}
-							if err := json.Unmarshal(bb, &extra); err != nil {
-								return err
-							}
-						}
-					}
-				}
 			}
 		}
 	}

@@ -8,7 +8,7 @@ var (
 
 type Ints map[string]int
 
-func (a *Ints) Set(key string, d interface{}) {
+func (a *Ints) Set(key string, d any) {
 	switch val := d.(type) {
 	case uint, uint8, uint16, uint32,
 		uint64, int, int8, int16, int32, int64:
@@ -18,11 +18,11 @@ func (a *Ints) Set(key string, d interface{}) {
 	}
 }
 
-func (a *Ints) Get(key string) interface{} {
+func (a *Ints) Get(key string) any {
 	return (*a)[key]
 }
 
-func (a *Ints) GetOk(key string) (interface{}, bool) {
+func (a *Ints) GetOk(key string) (any, bool) {
 	d, ok := (*a)[key]
 	return d, ok
 }

@@ -12,7 +12,7 @@ type Info struct {
 	Msg  string `json:"msg"`
 	User string `json:"user"`
 	// extras captures any field in the JSON that is not currently defined
-	// in the golang structure as an interface{}.
+	// in the golang structure as an any.
 	extras extra.Any
 }
 

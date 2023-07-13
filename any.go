@@ -4,17 +4,17 @@ var (
 	_ Map = &Any{}
 )
 
-type Any map[string]interface{}
+type Any map[string]any
 
-func (a *Any) Set(key string, d interface{}) {
+func (a *Any) Set(key string, d any) {
 	(*a)[key] = d
 }
 
-func (a *Any) Get(key string) interface{} {
+func (a *Any) Get(key string) any {
 	return (*a)[key]
 }
 
-func (a *Any) GetOk(key string) (interface{}, bool) {
+func (a *Any) GetOk(key string) (any, bool) {
 	d, ok := (*a)[key]
 	return d, ok
 }

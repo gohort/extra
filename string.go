@@ -6,17 +6,17 @@ var (
 
 type Strings map[string]string
 
-func (a *Strings) Set(key string, d interface{}) {
+func (a *Strings) Set(key string, d any) {
 	if str, ok := d.(string); ok {
 		(*a)[key] = str
 	}
 }
 
-func (a *Strings) Get(key string) interface{} {
+func (a *Strings) Get(key string) any {
 	return (*a)[key]
 }
 
-func (a *Strings) GetOk(key string) (interface{}, bool) {
+func (a *Strings) GetOk(key string) (any, bool) {
 	d, ok := (*a)[key]
 	return d, ok
 }

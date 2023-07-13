@@ -17,7 +17,7 @@ func parseTag(tag string) (string, tagOptions) {
 	return tag, tagOptions("")
 }
 
-func gatherTags(d interface{}) []reflectSettings {
+func gatherTags(d any) []reflectSettings {
 	elem := reflect.ValueOf(d).Elem()
 	numFields := elem.NumField()
 

@@ -6,17 +6,17 @@ var (
 
 type Bools map[string]bool
 
-func (a *Bools) Set(key string, d interface{}) {
+func (a *Bools) Set(key string, d any) {
 	if b, ok := d.(bool); ok {
 		(*a)[key] = b
 	}
 }
 
-func (a *Bools) Get(key string) interface{} {
+func (a *Bools) Get(key string) any {
 	return (*a)[key]
 }
 
-func (a *Bools) GetOk(key string) (interface{}, bool) {
+func (a *Bools) GetOk(key string) (any, bool) {
 	d, ok := (*a)[key]
 	return d, ok
 }

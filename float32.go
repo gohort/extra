@@ -8,18 +8,18 @@ var (
 
 type Float32 map[string]float32
 
-func (a *Float32) Set(key string, d interface{}) {
+func (a *Float32) Set(key string, d any) {
 	switch val := d.(type) {
 	case float32, float64:
 		(*a)[key] = float32(reflect.ValueOf(val).Float())
 	}
 }
 
-func (a *Float32) Get(key string) interface{} {
+func (a *Float32) Get(key string) any {
 	return (*a)[key]
 }
 
-func (a *Float32) GetOk(key string) (interface{}, bool) {
+func (a *Float32) GetOk(key string) (any, bool) {
 	d, ok := (*a)[key]
 	return d, ok
 }
